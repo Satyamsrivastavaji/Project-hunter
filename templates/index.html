@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCA Bulk Sender Tool (My Project)</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .container { max-width: 600px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h1 { text-align: center; color: #333; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input[type="text"], textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        textarea { height: 150px; resize: vertical; }
+        button { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px; width: 100%; font-size: 16px; }
+        button:hover { background-color: #0056b3; }
+        #results { margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+        .success { color: green; }
+        .failure { color: red; }
+        .processing { color: orange; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BCA Final Project: Bulk Sender</h1>
+        <p class="info">Developed by [Your Name]</p>
+        <form id="senderForm">
+            <label for="token">Facebook Access Token (Friend's Token)</label>
+            <input type="text" id="token" name="token" required>
+
+            <label for="target_id">Target Group/User ID</label>
+            <input type="text" id="target_id" name="target_id" required>
+
+            <label for="haters_name">Haters Name (Start of Message)</label>
+            <input type="text" id="haters_name" name="haters_name" required placeholder="e.g., Dear Students">
+            
+            <label for="here_name">Here Name (End of Message)</label>
+            <input type="text" id="here_name" name="here_name" required placeholder="e.g., Best Regards, HOD">
+
+
+            <label for="messages">Roll Numbers (One Per Line)</label>
+            <textarea id="messages" name="messages" required placeholder="Paste all 583 roll numbers here..."></textarea>
+            
+            <label for="delay">Delay Between Messages (in seconds)</label>
+            <input type="text" id="delay" name="delay" required value="10">
+
+            <button type="submit" id="sendBtn">START BULK SENDING</button>
+        </form>
+
+        <div id="results">
+            <h2>Live Results:</h2>
+            <div id="status"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('senderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const btn = document.getElementById('sendBtn');
+            const statusDiv = document.getElementById('status');
+            
+            const delayValue = document.getElementById('delay').value || 10; 
+
+            statusDiv.innerHTML = `<p class="processing">Processing... Please wait. This process takes ${delayValue} seconds per message!</p>`;
+            btn.disabled = true;
+            btn.textContent = 'Sending... DO NOT CLOSE!';
+
+            fetch('/send_messages', {
+                method: 'POST',
+                body: new FormData(form)
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.textContent = 'START BULK SENDING';
+                statusDiv.innerHTML = '<h3>Final Log:</h3>' + data.results.map(r => 
+                    `<p class="${r.startsWith('✅') ? 'success' : 'failure'}">${r}</p>`).join('');
+                
+                alert("Process Complete! Scroll down to record the final success log for your HOD. You can now close the browser/phone data. The messages will continue to send on the server.");
+
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.textContent = 'START BULK SENDING';
+                statusDiv.innerHTML = `<p class="failure">A fatal error occurred: ${error}</p>`;
+            });
+        });
+    </script>
+</body>
+</html>
+0
+
